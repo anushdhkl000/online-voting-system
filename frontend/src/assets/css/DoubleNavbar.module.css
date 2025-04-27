@@ -1,0 +1,49 @@
+.mainLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  /width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #17202a;
+
+  &:hover {
+    /* background-color: #ff00ff; */
+  }
+
+  &[data-active] {
+    &,
+    &:hover {
+      background-color: #2cd3b5 !important;
+      color: white !important;
+    }
+  }
+}
+
+.logo {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  height: 60px;
+  padding-top: var(--mantine-spacing-md);
+  border-bottom: 1px solid
+    (var(--mantine-color-gray-3), var(--mantine-color-dark-7));
+  margin-bottom: var(--mantine-spacing-xl);
+  margin-bottom: 15px;
+}
+
+.mainLinkToolTip {
+  border: 1px solid black !important;
+  font-family: sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.mainLinkToolTip div {
+  border-left: 1px solid black !important ;
+  border-bottom: 1px solid black !important ;
+}

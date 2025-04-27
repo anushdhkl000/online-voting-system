@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+:root {
+  --primary-light-bg: var(--mantine-color-white);
+  --primary-dark-bg: var(--mantine-color-dark-7);
+  --secondary-light-bg: #f9f9f9;
+  --secondary-light-bg: #fff;
+  --secondary-dark-bg: #1a1b1e;
+
+  --primary-light-text: #1f2937;
+  --primary-dark-text: #fff;
+  --secondary-light-text: #777171;
+  --secondary-dark-text: #bbbaba;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+
+.my-0 {
+  margin-block: 0;
+}
