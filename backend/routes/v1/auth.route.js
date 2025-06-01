@@ -6,14 +6,13 @@ const { signUpSchema, verifyEmailSchema, signInSchema } = require("../../formSch
 const { bearerToken } = require("../../middleware/verifyAccessToken")
 const upload = require('../../middleware/uploadFile')
 const { trackDevice } = require("../../middleware/trackDevice")
+const { checkPermission } = require("../../utils/checkPermission")
+const { PERMISSION_FEATURE_COSNTANTS } = require("../../config/permissionConstant")
 const authRouter = express.Router()
 
 authRouter.post(
     "/signup",
-    upload.fields([
-        { name: "document", maxCount: 1 },
-        { name: "profileImage", maxCount: 1 }
-    ]),
+    upload.single("identityDocument"),
     validateFormSchema(signUpSchema),
     asyncHandler(AuthController.signup)
 )
@@ -70,6 +69,9 @@ authRouter.post(
 authRouter.post(
     '/user/permission',
     bearerToken,
+    checkPermission({
+        AND: [PERMISSION_FEATURE_COSNTANTS.UPDATE_USER_PERMISSION]
+    }),
     asyncHandler(AuthController.addUserPermission)
 )
 
@@ -82,12 +84,18 @@ authRouter.get(
 authRouter.put(
     '/user/role/:userId',
     bearerToken,
+    checkPermission({
+        AND: [PERMISSION_FEATURE_COSNTANTS.UPDATE_USER_ROLE]
+    }),
     asyncHandler(AuthController.updateUserRole)
 )
 
 authRouter.put(
     '/user/status/:userId',
     bearerToken,
+    checkPermission({
+        AND: [PERMISSION_FEATURE_COSNTANTS.UPDATE_USER_STATUS]
+    }),
     asyncHandler(AuthController.updateUserStatus)
 )
 
@@ -97,13 +105,36 @@ authRouter.get(
     asyncHandler(AuthController.getAllUsers)
 )
 
-// import users
-authRouter.post(
-    '/organisation/upload',
+// // import users
+// authRouter.post(
+//     '/organisation/upload',
+//     bearerToken,
+//     upload.any(),
+//     asyncHandler(AuthController.uploadOrganisationUsers)
+// )
+
+authRouter.get(
+    '/user/permission',
     bearerToken,
-    upload.any(),
-    asyncHandler(AuthController.uploadOrganisationUsers)
+    asyncHandler(AuthController.getUserPermissionFeatures)
 )
 
+authRouter.put(
+    '/user/verify-details/:userId',
+    bearerToken,
+    asyncHandler(AuthController.verifyUserDetails)
+)
+
+authRouter.post(
+    '/group',
+    bearerToken,
+    asyncHandler(AuthController.addGroup)
+)
+
+authRouter.post(
+    '/group/permission',
+    bearerToken,
+    asyncHandler(AuthController.addGroupPermission)
+)
 
 module.exports = authRouter

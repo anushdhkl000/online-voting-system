@@ -4,7 +4,9 @@ class AuthController {
 
     async signup(req, res) {
         const refreshToken = await AuthService.signup({
-            ...req.body
+            ...req.body,
+            ...req.file
+
         })
 
         return res.status(200).json({
@@ -57,15 +59,6 @@ class AuthController {
             error: false
         })
     }
-
-    // async forgetPassword(req, res) {
-    //     await AuthService.forgetPassword({ ...req.body })
-    //     return res.status(200).json({
-    //         message: "password reset link has been sent to your email.",
-    //         success: true,
-    //         error: false
-    //     })
-    // }
 
     async securityQuestion(req, res) {
         const response = await AuthService.securityQuestion({ ...req.body })
@@ -167,7 +160,7 @@ class AuthController {
     }
 
     async getAllUsers(req, res) {
-        const { response, total } = await AuthService.getAllUsers({ userId: req.userId })
+        const { response, total } = await AuthService.getAllUsers({ ...req.query, userId: req.userId })
         return res.status(200).json({
             message: "success",
             success: true,
@@ -187,6 +180,58 @@ class AuthController {
             message: "Organisation users uploaded successfully",
             success: true,
             error: false
+        })
+    }
+
+    async getUserPermissionFeatures(req, res) {
+        const response = await AuthService.getUserPermissionFeatures({ userId: req.userId })
+
+        return res.status(200).json({
+            message: "success",
+            success: true,
+            error: false,
+            response
+        })
+    }
+
+    async verifyUserDetails(req, res) {
+        await AuthService.verifyUserDetails({ ...req.body, userId: req.params.userId })
+
+        return res.status(200).json({
+            message: "user details verified",
+            success: true,
+            error: false
+        })
+    }
+
+    async addGroup(req, res) {
+        await AuthService.addGroup({ ...req.body })
+
+        return res.status(200).json({
+            message: "group added successfully",
+            success: true,
+            error: false
+        })
+    }
+
+    async addGroupPermission(req, res) {
+        await AuthService.addGroupPermission({ ...req.body })
+
+        return res.status(200).json({
+            message: "group permission added successfully",
+            success: true,
+            error: false
+        })
+    }
+
+    async getAllGroups(req, res) {
+        const { response, total } = await AuthService.getAllGroups({ ...req.query })
+        return res.status(200).json({
+            message: "success",
+            success: true,
+            error: false,
+            response,
+            total
         })
     }
 

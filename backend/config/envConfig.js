@@ -17,6 +17,7 @@ exports.envConfig = () => {
     const USER_MAIL = process.env.USER_MAIL
     const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
     const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET
+    const VOTING_TOKEN_SECRET = process.env.VOTING_TOKEN_SECRET
     const FRONTEND_URL = process.env.FRONTEND_URL
 
     let PORT
@@ -43,6 +44,7 @@ exports.envConfig = () => {
         USER_MAIL,
         ACCESS_TOKEN_SECRET,
         REFRESH_TOKEN_SECRET,
+        VOTING_TOKEN_SECRET,
         FRONTEND_URL
     }
 }

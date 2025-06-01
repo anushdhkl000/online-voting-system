@@ -4,7 +4,6 @@ const { ObjectId } = mongoose.Schema
 const electionSchema = new mongoose.Schema({
     title: {
         type: String,
-        unique: true,
         required: true
     },
     startedAt: {
@@ -18,6 +17,16 @@ const electionSchema = new mongoose.Schema({
     timeZone: {
         type: String,
         required: true
+    },
+    // positionId: {
+    //     type: ObjectId,
+    //     ref: 'assign_election_position',
+    //     required: true
+    // },
+    orgId: {
+        type: ObjectId,
+        ref: 'organisation',
+        required: false
     }
 
 })

@@ -1,17 +1,17 @@
 import {
-    IconNotes,
+    IconCategoryPlus,
+    IconSitemap,
     IconSquaresSelected,
     IconStack2Filled,
     IconUserCog,
-    IconUsers,
-    IconUsersGroup
+    IconUsers
 } from "@tabler/icons-react";
 
 export const subLinks = {
     home: [
         {
-            label: "Home",
-            link: "/"
+            label: "Dashboard",
+            link: "/dashboard"
         },
         {
             label: "Elections",
@@ -22,12 +22,16 @@ export const subLinks = {
             link: "/candidate"
         },
         {
-            label: "Groups",
-            link: "/group"
+            label: "Symbols",
+            link: "/symbol"
         },
         {
             label: "Users",
             link: "/user"
+        },
+        {
+            label: "Organisations",
+            link: "/organisation"
         },
     ]
 
@@ -36,9 +40,9 @@ export const subLinks = {
 export const mainLinksData = [
     {
         icon: IconSquaresSelected,
-        label: "Home",
-        value: "home",
-        link: "/"
+        label: "Dashboard",
+        value: "dashboard",
+        link: "/dashboard"
     },
     {
         icon: IconStack2Filled,
@@ -53,16 +57,22 @@ export const mainLinksData = [
         link: "/candidate"
     },
     {
-        icon: IconUsersGroup,
-        label: "Groups",
-        value: "group",
-        link: "/group"
+        icon: IconCategoryPlus,
+        label: "Symbols",
+        value: "symbol",
+        link: "/symbol"
     },
     {
         icon: IconUserCog,
         label: "Users",
         value: "user",
         link: "/user"
+    },
+    {
+        icon: IconSitemap,
+        label: "Organisations",
+        value: "organisation",
+        link: "/organisation"
     }
 ]
 

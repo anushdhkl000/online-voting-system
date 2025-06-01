@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { ObjectId } = mongoose.Schema
 
 const groupSchema = new mongoose.Schema({
     symbol: {
@@ -7,8 +8,12 @@ const groupSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        unique: true,
         required: true
+    },
+    orgId: {
+        type: ObjectId,
+        ref: 'organisation',
+        required: false
     }
 })
-module.exports = mongoose.model('group', groupSchema)
+module.exports = mongoose.model('symbol', groupSchema)

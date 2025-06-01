@@ -14,22 +14,34 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import Login from "./features/auth/pages/Login";
+import Login from "./features/Admins/auth/pages/Login";
 import ProtectedRoute from "./helpers/protectedRoute";
 import PageLayout from "./layout/layout";
 import HomePage from "./pages/HomePage";
 import { useEffect } from "react";
-import ElectionPage from "./features/elections/pages/ElectionPage";
-import CandidatePageList from "./features/candidates/pages/CandidatePageList";
-import GroupPageList from "./features/groups/pages/GroupPageList";
-import Register from "./features/auth/pages/Register";
-import VerifyUserEmail from "./features/auth/pages/VerifyUserEmail";
-import UserList from "./features/users/pages/UserList";
-import UserPermissionList from "./features/users/pages/UserPermissionList";
+import ElectionPage from "./features/Admins/elections/pages/ElectionPage";
+import CandidatePageList from "./features/Admins/candidates/pages/CandidatePageList";
+import GroupPageList from "./features/Admins/groups/pages/GroupPageList";
+import Register from "./features/Admins/auth/pages/Register";
+import VerifyUserEmail from "./features/Admins/auth/pages/VerifyUserEmail";
+import UserList from "./features/Admins/users/pages/UserList";
+import UserPermissionList from "./features/Admins/users/pages/UserPermissionList";
+import { useDispatch } from "react-redux";
+import { getUserPermissionFeatures } from "./actions/indexAction";
+import VotingPage from "./features/Users/voting/pages/VotingPage";
+import LandingPageLayout from "./layout/landingPageLayout";
+import AboutPage from "./features/Users/about/AboutPage";
+import Election from "./features/Users/voting/pages/Election";
+import Candidate from "./features/Users/voting/pages/Candidate";
+import Dashboard from "./features/Admins/dashboard/pages/Dashboard";
+import Organisation from "./features/Admins/organisations/pages/Organisation";
+import PositionPage from "./features/Users/voting/pages/PositionPage";
+import ElectionResults from "./features/Users/voting/pages/ElectionResults";
 
 function Root() {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const hasExpired = localStorage.getItem("online_voting_expiry_time");
@@ -48,14 +60,20 @@ function Root() {
     } else {
       const currentLocation = location;
       if (
+        currentLocation.pathname != "/login" &&
         currentLocation.pathname != "/register" &&
         !currentLocation.pathname.startsWith("/email/confirmation/")
       ) {
-        console.log("currentLocation", currentLocation.pathname);
-        navigate("/login");
+        navigate("/");
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem("role")) {
+      dispatch(getUserPermissionFeatures());
+    }
+  }, [dispatch, localStorage.getItem("role")]);
 
   return (
     <div className="App">
@@ -69,7 +87,7 @@ function Root() {
         />
         <Route
           exact
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <PageLayout>
@@ -89,7 +107,6 @@ function Root() {
             </ProtectedRoute>
           }
         />
-
         <Route
           exact
           path="/candidate"
@@ -101,9 +118,22 @@ function Root() {
             </ProtectedRoute>
           }
         />
+
         <Route
           exact
-          path="/group"
+          path="/election/candidate"
+          element={
+            <ProtectedRoute>
+              <PageLayout>
+                <CandidatePageList />
+              </PageLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          exact
+          path="/symbol"
           element={
             <ProtectedRoute>
               <PageLayout>
@@ -123,6 +153,19 @@ function Root() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          exact
+          path="/organisation"
+          element={
+            <ProtectedRoute>
+              <PageLayout>
+                <Organisation />
+              </PageLayout>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           exact
           path="/user/permission"
@@ -132,6 +175,65 @@ function Root() {
                 <UserPermissionList />
               </PageLayout>
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          exact
+          path="/"
+          element={
+            <LandingPageLayout>
+              <VotingPage />
+            </LandingPageLayout>
+          }
+        />
+
+        <Route
+          exact
+          path="/about"
+          element={
+            <LandingPageLayout>
+              <AboutPage />
+            </LandingPageLayout>
+          }
+        />
+
+        <Route
+          exact
+          path="/user/election"
+          element={
+            <LandingPageLayout>
+              <Election />
+            </LandingPageLayout>
+          }
+        />
+
+        <Route
+          exact
+          path="/user/election/:electionId"
+          element={
+            <LandingPageLayout>
+              <PositionPage />
+            </LandingPageLayout>
+          }
+        />
+
+        <Route
+          exact
+          path="/user/candidate/:electionId"
+          element={
+            <LandingPageLayout>
+              <Candidate />
+            </LandingPageLayout>
+          }
+        />
+        <Route
+          exact
+          path="/user/results"
+          element={
+            <LandingPageLayout>
+              <ElectionResults />
+            </LandingPageLayout>
           }
         />
       </Routes>

@@ -1,13 +1,21 @@
 const { customJoi } = require("../utils/customJoi");
 
 const candidateSchema = customJoi.object({
-    firstName: customJoi.string().required().messages({
-        "any.required": "First name is required",
-        "string.empty": "First name can not be empty"
+    // firstName: customJoi.string().required().messages({
+    //     "any.required": "First name is required",
+    //     "string.empty": "First name can not be empty"
+    // }),
+    // lastName: customJoi.string().required().messages({
+    //     "any.required": "Last name is required",
+    //     "string.empty": "Last name can not be empty"
+    // }),
+    electionId: customJoi.string().required().messages({
+        "any.required": "Election ID is required",
+        "string.empty": "Election ID can not be empty"
     }),
-    lastName: customJoi.string().required().messages({
-        "any.required": "Last name is required",
-        "string.empty": "Last name can not be empty"
+    userId: customJoi.string().required().messages({
+        "any.required": "User ID is required",
+        "string.empty": "User ID can not be empty"
     }),
     candidateID: customJoi.string().required().messages({
         "any.required": "Candidate ID is required",
@@ -17,15 +25,16 @@ const candidateSchema = customJoi.object({
         "any.required": "Gender is required",
         "string.empty": "Gender can not be empty"
     }),
-    age: customJoi.string().required().messages({
-        "any.required": "Age is required",
-        "string.empty": "Age can not be empty"
-    }),
+    // age: customJoi.string().required().messages({
+    //     "any.required": "Age is required",
+    //     "string.empty": "Age can not be empty"
+    // }),
     descriptions: customJoi.string().required().messages({
         "any.required": "Description is required",
         "string.empty": "Description can not be empty"
     }),
-    candidateType: customJoi.string()
+    candidateType: customJoi.string(),
+    positionId: customJoi.string()
 })
 
 const groupCandidateSchema = customJoi.object({
@@ -42,8 +51,9 @@ const groupCandidateSchema = customJoi.object({
 
             // Validate each member object
             const memberSchema = customJoi.object({
-                firstName: customJoi.string().required(),
-                age: customJoi.string().required()
+                // firstName: customJoi.string().required(),
+                // age: customJoi.string().required()
+                userId: customJoi.string().required()
             });
 
             for (const member of parsed) {
@@ -61,6 +71,10 @@ const groupCandidateSchema = customJoi.object({
         "any.required": "Members are required",
         "string.empty": "Members can not be empty",
         "any.invalid": "Members must be a valid JSON array of objects with firstName and age"
+    }),
+    electionId: customJoi.string().required().messages({
+        "any.required": "Election ID is required",
+        "string.empty": "Election ID can not be empty"
     }),
     descriptions: customJoi.string().required().messages({
         "any.required": "Description is required",

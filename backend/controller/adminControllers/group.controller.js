@@ -4,7 +4,8 @@ class GroupController {
     async createGroup(req, res) {
         await GroupService.createGroup({
             ...req.body,
-            ...req.files
+            ...req.files,
+            userId: req.userId
         })
         return res.status(200).json({
             message: "Group created successfully",
@@ -15,7 +16,8 @@ class GroupController {
 
     async viewGroup(req, res) {
         const { results, total } = await GroupService.viewGroup({
-            ...req.query
+            ...req.query,
+            userId: req.userId
         })
         return res.status(200).json({
             message: "Group List",

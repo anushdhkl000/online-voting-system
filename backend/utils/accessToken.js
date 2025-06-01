@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { envConfig } = require('../config/envConfig');
-const { accessTokenExpiryTime, refreshTokenExpiryTime } = require('../config/constant');
+const { accessTokenExpiryTime, refreshTokenExpiryTime, votingTokenExpiryTIme } = require('../config/constant');
 
 exports.signUpToken = async (user) => {
 
@@ -22,7 +22,7 @@ exports.verifyToken = async (filters) => {
         const decoded = jwt.verify(token, key);
         return decoded
     } catch (err) {
-        return err
+        return { error: true }
     }
 }
 
@@ -45,6 +45,19 @@ exports.refreshTokenId = async (user) => {
     let data = {
         exp: Math.floor(Date.now() / 1000) + refreshTokenExpiryTime,
         userId: user.id
+    }
+    const token = jwt.sign(data, jwtSecretKey);
+    return token
+}
+
+exports.votingTokenId = async (filters) => {
+    const config = envConfig();
+    let jwtSecretKey = config.VOTING_TOKEN_SECRET;
+
+    let data = {
+        exp: Math.floor(Date.now() / 1000) + votingTokenExpiryTIme,
+        electionId: filters.electionId,
+        symbolId: filters.symbolId
     }
     const token = jwt.sign(data, jwtSecretKey);
     return token

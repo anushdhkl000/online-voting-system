@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { ObjectId } = mongoose.Schema
 
 const candidateSchema = new mongoose.Schema({
     groupName: {
@@ -13,6 +14,11 @@ const candidateSchema = new mongoose.Schema({
         type: String,
         required: false
     },
+    electionId: {
+        type: ObjectId,
+        ref: 'election',
+        required: true
+    },
     candidateID: {
         type: String,
         required: true
@@ -25,9 +31,14 @@ const candidateSchema = new mongoose.Schema({
     members: {
         type: [{
             firstName: String,
+            lastName: String,
             age: String
         }],
         required: false
+    },
+    group: {
+        type: Boolean,
+        default: false
     },
     age: {
         type: String,
@@ -48,6 +59,20 @@ const candidateSchema = new mongoose.Schema({
     assignGroup: {
         type: Boolean,
         default: false
+    },
+    userId: {
+        type: String,
+        required: false
+    },
+    orgId: {
+        type: ObjectId,
+        ref: 'organisation',
+        required: false
+    },
+    positionId: {
+        type: ObjectId,
+        ref: 'assign_election_position',
+        required: false
     }
 
 }, { timestamps: true })

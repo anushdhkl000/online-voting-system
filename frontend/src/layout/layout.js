@@ -2,9 +2,7 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import {
     AppShell,
     Burger,
-
-    Group,
-
+    Group
 } from "@mantine/core";
 import Header from "../components/Header";
 import Navbar from "../components/Navbar";
@@ -35,17 +33,6 @@ const PageLayout = (props) => {
                 </Group>
             </AppShell.Header>
             <AppShell.Navbar className="secondary-bg">
-                {/* <DoubleNavbar
-                    activeTitle={activeTitle}
-                    setActiveTitle={(e) => setActiveTitle(e)}
-                    openedSublinks={openedSublinks}
-                    leftData={props?.fileDirectory?.menu || []}
-                    // permissionLinks={permissionLinks}
-                    burgerOpen={opened}
-                    burgerClick={toggle}
-                    openSublinks={() => setOpenedSublinks((prevValue) => !prevValue)}
-                    matches={matches}
-                /> */}
                 <Navbar />
             </AppShell.Navbar>
             <AppShell.Main className="primary-bg">{props.children}</AppShell.Main>

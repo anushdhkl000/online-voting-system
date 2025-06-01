@@ -58,7 +58,19 @@ const signUpSchema = customJoi.object({
             "any.required": "Confirm password is required",
             "string.empty": "Confirm password can not be empty",
             "any.only": "Password and confirm password must match"
-        })
+        }),
+    identityNumber: customJoi.string().required().messages({
+        "any.required": "Identity number is required",
+        "string.empty": "Identity number can not be empty"
+    }),
+    age: customJoi.string().required().messages({
+        "any.required": "Age is required",
+        "string.empty": "Age can not be empty"
+    }),
+    orgId: customJoi.string().required().messages({
+        "any.required": "Organisation id is required",
+        "string.empty": "Organisation id can not be empty"
+    })
 })
 
 const verifyEmailSchema = customJoi.object({
@@ -76,7 +88,8 @@ const signInSchema = customJoi.object({
     password: customJoi.string().required().messages({
         "any.required": "Password is required",
         "string.empty": "Password can not be empty"
-    })
+    }),
+    updatedDevice: customJoi.optional()
 })
 
 const voterSchema = customJoi.object({

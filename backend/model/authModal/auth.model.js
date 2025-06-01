@@ -24,6 +24,10 @@ const authSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    age: {
+        type: Number,
+        required: false
+    },
     country: {
         type: String,
         required: true
@@ -69,11 +73,28 @@ const authSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
-    organisationId: {
+    identityNumber: {
+        type: String,
+        required: false
+    },
+    identityDocument: {
+        type: String,
+        required: false
+    },
+    isVerifiedDetails: {
+        type: Boolean,
+        default: false
+    },
+    userTokenId: {
+        type: String,
+        required: false
+    },
+    orgId: {
         type: ObjectId,
         ref: 'organisation',
         required: false
-    },
+    }
+
 
 
 }, { timestamps: true })

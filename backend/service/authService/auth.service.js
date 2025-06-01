@@ -3,10 +3,7 @@ const User = require("../../model/authModal/auth.model")
 const Token = require("../../model/authModal/token.model")
 const TrackDevice = require("../../model/authModal/device.model")
 const SecurityQuestion = require("../../model/authModal/securityQuestionModel")
-
-const csv = require('csv-parser');
-const fs = require('fs');
-const OrganisationUser = require('../../model/authModal/organisationUser.model');
+const ShortUniqueId = require('short-unique-id');
 
 
 const { signUpToken, verifyToken, accessTokenId, refreshTokenId } = require("../../utils/accessToken")
@@ -16,6 +13,8 @@ const bcrypt = require("bcrypt")
 const featureModel = require("../../model/authModal/feature.model")
 const PermissionModel = require("../../model/authModal/Permission.model")
 const userPermissionModel = require("../../model/authModal/userPermission.model")
+const Group = require("../../model/authModal/group.model")
+const GroupPermission = require("../../model/authModal/groupPermission.model")
 const config = envConfig()
 
 class AuthService {
@@ -35,8 +34,10 @@ class AuthService {
             unitNumber,
             street,
             suburb,
+            identityNumber,
+            age,
+            orgId
         } = filters
-
         const isUser = await User.findOne({ email })
         if (isUser) {
             throw new AppError("User already exists", 400)
@@ -55,7 +56,11 @@ class AuthService {
             street,
             suburb,
             password,
-            role
+            role,
+            identityNumber,
+            identityDocument: filters.filename,
+            age,
+            orgId
         })
 
         user = await user.save()
@@ -63,6 +68,7 @@ class AuthService {
         if (!user) {
             throw new AppError("User not created", 400)
         }
+
         let token = new Token({
             token: await signUpToken(user),
             userId: user.id
@@ -83,7 +89,6 @@ class AuthService {
         // })
 
         const verificationLink = `${config.FRONTEND_URL}/email/confirmation/${token.token}`
-
         /** for production testing mail server via google */
         await sendLiveMail({
             from: 'noreply@gmail.com',
@@ -115,6 +120,10 @@ class AuthService {
             This code will expire in 5 minutes. If you didn't request this, please ignore
             this email.
             </p>
+            <p style="font-size: 16px; line-height: 1.5">
+            Note: Within two or three business days, your account will be authorized. 
+            You will receive an email from us verifying your account.
+            </p>
 
             <p style="font-size: 16px; line-height: 1.5">Best regards,<br />The Team</p>
 
@@ -133,12 +142,14 @@ class AuthService {
     async verfiyEmail(filters) {
         const { token } = filters
         const key = config.JWT_SECRET
+
         const decodedToken = await verifyToken({ token, key })
-        if (!decodedToken) {
+        if (decodedToken.error) {
             throw new AppError("Invalid token or token may be expired", 400)
         }
 
         const hasToken = await Token.findOne({ token, userId: decodedToken.userId })
+
         if (!hasToken) {
             throw new AppError("Invalid token", 400)
         }
@@ -148,6 +159,7 @@ class AuthService {
         if (!user) {
             throw new AppError("User not found", 400)
         }
+
         if (user.isVerified) {
             throw new AppError("User already verified", 400)
         }
@@ -182,6 +194,10 @@ class AuthService {
 
         if (!hasUser.isActive) {
             throw new AppError("User not active", 400)
+        }
+
+        if (!hasUser.isVerifiedDetails) {
+            throw new AppError("The information provided by the user is not verified.", 400)
         }
 
         const hasTrackDevice = await TrackDevice.findOne({ userId: hasUser._id });
@@ -470,24 +486,40 @@ class AuthService {
     }
 
     async addUserPermission(filters) {
-        const { features, userId } = filters
+        const { features, userId, groupId } = filters
 
-        const hasPermission = await userPermissionModel.deleteMany({
-            permissionId: { $in: features },
-            userId: userId
-        });
+        if (groupId) {
+            await GroupPermission.deleteMany({
+                groupId: userId
+            });
 
-        for (const feature of features) {
-            let userPermission = new userPermissionModel({
-                permissionId: feature,
-                userId
-            })
-            await userPermission.save()
+            for (const feature of features) {
+                let GroupPermission = new GroupPermission({
+                    permissionId: feature,
+                    userId
+                })
+                await GroupPermission.save()
+            }
+        } else {
+            await userPermissionModel.deleteMany({
+                userId: userId
+            });
+
+            for (const feature of features) {
+                let userPermission = new userPermissionModel({
+                    permissionId: feature,
+                    userId
+                })
+                await userPermission.save()
+            }
         }
+
+
         return true
     }
 
-    async getFetures({ userId }) {
+    async getFetures(filters) {
+        const { userId } = filters
         const permissions = await PermissionModel.find().populate('parentId').exec();
         const userPermissions = await userPermissionModel.find({ userId }).populate('permissionId').exec();
         if (permissions.length > 0) {
@@ -553,113 +585,167 @@ class AuthService {
         const booleanStatus = status === "true" ? true : false
 
         user.isActive = booleanStatus
+        user.isVerified = booleanStatus
         await user.save()
         return true
     }
 
     async getAllUsers(filters) {
-        const { userId } = filters
+        const { search } = filters
+        const { page = 1, pageSize = 10 } = filters;
+        const skip = (page - 1) * pageSize;
 
-        if (filters.search) {
+        const hasUser = await User.findOne({ _id: filters.userId })
 
+        if (!hasUser?.orgId && hasUser?.role !== "super-admin") {
+            throw new AppError("User does not belong to any organisation", 400)
         }
+        const orgId = hasUser?.orgId
+
+
+        let query = {}
+        if (search) {
+            query = {
+                $or: [
+                    { firstName: { $regex: search, $options: 'i' } },
+                    { lastName: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } },
+                    { role: { $regex: search, $options: 'i' } },
+                    { phone: { $regex: search, $options: 'i' } },
+                ]
+            }
+        }
+
+        if (orgId) {
+            query.orgId = orgId
+        }
+
         /** exclude password and refreshToken */
-        const response = await User.find().select('-password -refreshToken').exec();
-        const total = await User.countDocuments()
+        const response = await User.find(query)
+            .select('-password -refreshToken')
+            .skip(skip)
+            .limit(pageSize)
+            .exec();
+        const total = await User.countDocuments({ orgId })
         return {
             response,
             total
         }
     }
 
-    async uploadOrganisationUsers(filters) {
-        console.log(filters)
-        const { orgId, filePath, fieldMappings } = filters
-        const users = [];
-        let processedRows = 0;
-        let skippedRows = 0;
+    async getUserPermissionFeatures({ userId }) {
 
-        // Default field mappings (can be overridden by the passed fieldMappings)
-        const defaultMappings = {
-            firstName: ['firstName', 'First Name', 'FIRST NAME'],
-            lastName: ['lastName', 'Last Name', 'LAST NAME'],
-            name: ['name', 'Name', 'NAME', 'fullname'],
-            email: ['email', 'Email', 'EMAIL'],
-            phone: ['phone', 'Phone', 'PHONE'],
-            country: ['country', 'Country', 'COUNTRY'],
-            state: ['state', 'State', 'STATE'],
-            zip: ['zip', 'Zip', 'ZIP'],
-            unitNumber: ['unitNumber', 'Unit Number', 'UNIT NUMBER'],
-            street: ['street', 'Street', 'STREET'],
-            suburb: ['suburb', 'Suburb', 'SUBURB'],
-            dob: ['dob', 'DOB', 'DOB'],
-            gender: ['gender', 'Gender', 'GENDER'],
-            password: ['password', 'Password', 'PASSWORD'],
-            role: ['role', 'Role', 'ROLE']
-        };
+        const userPermissions = await userPermissionModel.find({ userId }).populate('permissionId').exec();
 
-        // Merge default mappings with custom mappings
-        const mappings = { ...defaultMappings };
+        const permissionMap = userPermissions?.map((data) => data.permissionId.permission)
 
-        // Read and parse CSV file
-        await new Promise((resolve, reject) => {
-            fs.createReadStream(filePath)
-                .pipe(csv())
-                .on('data', (row) => {
-                    processedRows++;
-                    const user = {};
-                    let hasRequiredFields = true;
+        return permissionMap
 
-                    // Dynamically map fields based on configuration
-                    for (const [field, possibleColumns] of Object.entries(mappings)) {
-                        // Find the first matching column in the row
-                        const column = possibleColumns.find(col => row[col] !== undefined);
+    }
 
-                        if (column) {
-                            user[field] = row[column];
-                        } else if (field === 'email') {
-                            // Email is typically required
-                            hasRequiredFields = false;
-                        }
-                    }
+    async verifyUserDetails(filters) {
+        const { userId, verify } = filters
+        let isVerifiedDetails = false
+        if (verify) {
+            isVerifiedDetails = verify === "true" ? true : false
+        }
 
-                    if (!hasRequiredFields || !user.email) {
-                        skippedRows++;
-                        console.warn(`Skipping row ${processedRows} - missing required fields`);
-                        return;
-                    }
+        const randomNumber = await this.generateRandomNumber()
 
-                    users.push({
-                        user: user,
-                        orgId: orgId
-                    });
-                })
-                .on('end', () => {
-                    console.log(`Processed ${processedRows} rows, imported ${users.length} users, skipped ${skippedRows} rows`);
-                    resolve();
-                })
-                .on('error', (error) => {
-                    reject(error);
-                });
-        });
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                isVerifiedDetails,
+                userTokenId: randomNumber
+            },
+            { new: true }
+        );
 
-        // Insert users in bulk for better performance
-        if (users.length > 0) {
-            const result = await OrganisationUser.insertMany(users);
-            return {
-                success: true,
-                processedRows,
-                importedCount: result.length,
-                skippedRows,
-                message: `Successfully imported ${result.length} users (${skippedRows} skipped)`
-            };
-        } else {
-            return {
-                success: false,
-                processedRows,
-                skippedRows,
-                message: 'No valid users found in the CSV file'
-            };
+        if (!updatedUser) {
+            throw new AppError("User not found", 400)
+        }
+
+        await sendLiveMail({
+            from: 'noreply@gmail.com',
+            to: updatedUser.email,
+            subject: 'User Verification',
+            html:
+                `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin:  auto; border: 1px solid #e1e1e1; padding: 20px;">
+            <h2 style="color: #4a2c82; text-align: center;">Your Account Has Been Verified</h2>
+
+            <p style="font-size: 16px; line-height: 1.5;">
+            Dear ${updatedUser.firstName + " " + updatedUser.lastName || 'Valued Customer'},
+            </p>
+
+            <p style="font-size: 16px; line-height: 1.5;">
+            Thank you for registering with us! We're pleased to inform you that after careful review, your account has been successfully verified.
+            </p>
+
+            <p style="font-size: 16px; line-height: 1.5;">
+            You now have full access to all our services and features. We appreciate your patience during our verification process, which typically takes 2-3 business days to ensure the security of all our users.
+            </p>
+
+            <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #4a2c82; margin: 20px 0;">
+            <p style="font-size: 16px; line-height: 1.5; margin: 0;">
+            <strong>Important:</strong> Please save your registered userID for future reference:
+            </p>
+            <p style="font-size: 18px; font-weight: bold; color: #4a2c82; text-align: center; margin: 10px 0;">
+            ${randomNumber}
+            </p>
+            <p style="font-size: 14px; line-height: 1.5; margin: 0;">
+            You may need this token for future purposes. Please keep it safe and secure.
+            </p>
+            </div>
+
+            <p style="font-size: 16px; line-height: 1.5;">
+            If you have any questions or need assistance, please don't hesitate to contact our support team.
+            </p>
+
+            <p style="font-size: 16px; line-height: 1.5;">
+            The Team
+            </p>
+            </div>
+            `
+        })
+
+        return true
+    }
+
+
+    async generateRandomNumber() {
+        const uid = new ShortUniqueId({ length: 6 });
+        const uniqueId = uid.rnd()
+        return uniqueId;
+    }
+
+    async addGroup({ name }) {
+        const group = new Group({
+            name
+        })
+        await group.save()
+        return group
+    }
+
+    async addGroupPermission({ permissionId, groupId }) {
+        const groupPermission = new GroupPermission({
+            permissionId,
+            groupId
+        })
+        await groupPermission.save()
+        return groupPermission
+    }
+
+    async getAllGroups({ page = 1, pageSize = 10 }) {
+        const skip = (page - 1) * pageSize;
+        const response = await Group.find()
+            .skip(skip)
+            .limit(pageSize)
+            .exec();
+        const total = await Group.countDocuments()
+        return {
+            response,
+            total
         }
     }
 

@@ -10,7 +10,7 @@ const assignCandidateGroupSchema = new mongoose.Schema({
     },
     groupId: {
         type: ObjectId,
-        ref: 'group',
+        ref: 'symbol',
         unique: true,
         required: true
     }

@@ -3,7 +3,6 @@ const { CandidateService } = require("../../service/adminServices/candidate.serv
 
 class candidateController {
     async createCandidate(req, res) {
-
         if (req.body.candidateType === "individual") {
             const payload = req.body;
             const validated = await candidateSchema.validateAsync(payload);
@@ -13,11 +12,12 @@ class candidateController {
             const payload = req.body;
             const validated = await groupCandidateSchema.validateAsync(payload);
             req.body = validated;
+            req.body.group = true
         }
-        console.log(req.body)
         await CandidateService.createCandidate({
             ...req.body,
-            ...req.files
+            ...req.files,
+            userIds: req.userId
         })
 
         return res.status(200).json({
@@ -28,8 +28,9 @@ class candidateController {
     }
 
     async viewCandidate(req, res) {
-        const { results, total, hasNextPage, currentPage } = await CandidateService.viewCandidate({
-            ...req.query
+        const { results, total, hasNextPage, currentPage, electionPosition } = await CandidateService.viewCandidate({
+            ...req.query,
+            userId: req.userId
         })
 
         return res.status(200).json({
@@ -39,7 +40,8 @@ class candidateController {
             data: results,
             total,
             hasNextPage,
-            currentPage
+            currentPage,
+            electionPosition
         })
     }
 

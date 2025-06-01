@@ -1,6 +1,7 @@
 const assignCandidateGroupModel = require("../../model/adminModel/assignCandidateGroup.model")
 const Group = require("../../model/adminModel/group.model")
 const Candidate = require("../../model/adminModel/candidate.model")
+const User = require("../../model/authModal/auth.model")
 const AppError = require("../../utils/AppError")
 
 class GroupService {
@@ -9,14 +10,24 @@ class GroupService {
         if (!filters?.symbol) {
             throw new AppError("Group symbol is required", 400)
         }
-        const hasGroup = await Group.findOne({ name: filters.name })
+
+        const hasUser = await User.findOne({ _id: filters.userId })
+
+        if (!hasUser?.orgId && hasUser?.role !== "super-admin") {
+            throw new AppError("User does not belong to any organisation", 400)
+        }
+        const orgId = hasUser?.orgId
+
+        const hasGroup = await Group.findOne({ name: filters.name, orgId: orgId })
 
         if (hasGroup) {
             throw new AppError("Group already exists", 400)
         }
+
         let group = new Group({
             symbol: filters.symbol[0].filename,
-            name: filters.name
+            name: filters.name,
+            orgId
         })
         group = await group.save()
         if (!group) {
@@ -28,9 +39,22 @@ class GroupService {
         const { page = 1, pageSize = 10 } = filters;
         const skip = (page - 1) * pageSize;
         const searchTerm = filters.search || '';
+
+        const hasUser = await User.findOne({ _id: filters.userId })
+
+        if (!hasUser?.orgId && hasUser?.role !== "super-admin") {
+            throw new AppError("User does not belong to any organisation", 400)
+        }
+        const orgId = hasUser?.orgId
+
+
         const query = {};
         if (searchTerm) {
             query.name = { $regex: searchTerm, $options: 'i' };
+        }
+
+        if (orgId) {
+            query.orgId = orgId
         }
 
         const results = await Group.find(query)
@@ -68,7 +92,16 @@ class GroupService {
     }
 
     async deleteGroup(filters) {
+        const assignGroup = await assignCandidateGroupModel.findOne({ groupId: filters.id })
+
+        if (assignGroup) {
+            // update candidate assign group
+            await Candidate.findByIdAndUpdate(assignGroup.candidateId, { assignGroup: false }, { new: true })
+        }
+
         const group = await Group.findOneAndDelete({ _id: filters.id })
+
+        await assignCandidateGroupModel.findOneAndDelete({ groupId: filters.id })
         if (!group) {
             throw new AppError("Group not deleted", 400)
         }

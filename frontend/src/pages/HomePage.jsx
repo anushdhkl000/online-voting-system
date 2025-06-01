@@ -11,13 +11,15 @@ import {
 } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import election from "../assets/imgs/election.jpg";
-import candidate from "../assets/imgs/candidate.jpg";
-import group from "../assets/imgs/group.jpg";
-import user from "../assets/imgs/users.png";
+// import election from "../assets/imgs/election.jpg";
+// import candidate from "../assets/imgs/candidate.jpg";
+// import group from "../assets/imgs/group.jpg";
+// import user from "../assets/imgs/users.png";
 import { useDispatch, useSelector } from "react-redux";
-import { hasUserAddedSecurityQuestion } from "../features/auth/actions/authAction";
-import SecurityQuestionModal from "../features/auth/components/SecurityQuestionModal";
+import { hasUserAddedSecurityQuestion } from "../features/Admins/auth/actions/authAction";
+import SecurityQuestionModal from "../features/Admins/auth/components/SecurityQuestionModal";
+import PageNotFound from "../components/PageNotFound";
+import Dashboard from "../features/Admins/dashboard/pages/Dashboard";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -28,6 +30,8 @@ const HomePage = () => {
   const [isNewDevice, setIsNewDevice] = useState(false);
   const hasAccessToken = localStorage.getItem("online_voting_access_token");
   const hasRefreshToken = localStorage.getItem("online_voting_refresh_token");
+
+  const isUser = localStorage.getItem("role");
 
   useEffect(() => {
     if (!hasAccessToken && !hasRefreshToken) {
@@ -47,49 +51,52 @@ const HomePage = () => {
     }
   }, [AuthDetails?.hasSecurityAnswer]);
 
-  const data = [
-    {
-      key: "user",
-      title: "Users",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: user,
-      action: "Manage User Roles",
-      path: "/user",
-    },
-    {
-      key: "election",
-      title: "Elections",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: election,
-      action: "Create Election",
-      path: "/election",
-    },
-    {
-      key: "candidate",
-      title: "Candidates",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: candidate,
-      action: "Create Candidate",
-      path: "/candidate",
-    },
-    {
-      key: "group",
-      title: "Groups",
-      description:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: group,
-      action: "Create Group",
-      path: "/group",
-    },
-  ];
+  // const data = [
+  //   {
+  //     key: "user",
+  //     title: "Users",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  //     image: user,
+  //     action: "Manage User Roles",
+  //     path: "/user",
+  //   },
+  //   {
+  //     key: "election",
+  //     title: "Elections",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  //     image: election,
+  //     action: "Create Election",
+  //     path: "/election",
+  //   },
+  //   {
+  //     key: "candidate",
+  //     title: "Candidates",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  //     image: candidate,
+  //     action: "Create Candidate",
+  //     path: "/candidate",
+  //   },
+  //   {
+  //     key: "symbol",
+  //     title: "Symbols",
+  //     description:
+  //       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  //     image: group,
+  //     action: "Create Symbol",
+  //     path: "/symbol",
+  //   },
+  // ];
+
+  if (isUser === "user") {
+    return navigate("/");
+  }
 
   return (
     <div className="p-0 m-0" key={hasSecurityAnswer}>
-      <Space h={20} />
-      <Grid gutter="md">
+      {/* <Grid gutter="md">
         {data.map((_, index) => (
           <Grid.Col key={index} span={{ base: 12, sm: 6, md: 4 }}>
             <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -122,7 +129,8 @@ const HomePage = () => {
             </Card>
           </Grid.Col>
         ))}
-      </Grid>
+      </Grid> */}
+      <Dashboard />
       {isNewDevice && (
         <SecurityQuestionModal
           blocked={false}

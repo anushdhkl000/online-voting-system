@@ -1,16 +1,22 @@
 import {
+  IconAdjustmentsPlus,
+  IconAlertTriangleFilled,
   IconEdit,
   IconExclamationCircle,
   IconEyeEdit,
   IconFilterEdit,
   IconHomeEdit,
+  IconInfoCircle,
+  IconLayoutDashboard,
   IconPlus,
+  IconRosetteDiscountCheck,
+  IconRosetteDiscountCheckFilled,
   IconShieldCheckFilled,
-  IconTablePlus,
   IconTrash,
   IconUpload,
   IconUserEdit,
 } from "@tabler/icons-react";
+import { TiArrowBackOutline } from "react-icons/ti";
 
 export const AppIcons = {
   Plus: IconPlus,
@@ -23,4 +29,11 @@ export const AppIcons = {
   IconFilterEdit: IconFilterEdit,
   IconEyeEdit: IconEyeEdit,
   IconUpload: IconUpload,
+  IconInfoCircle: IconInfoCircle,
+  IconRosetteDiscountCheckFilled: IconRosetteDiscountCheckFilled,
+  IconRosetteDiscountCheck: IconRosetteDiscountCheck,
+  IconLayoutDashboard: IconLayoutDashboard,
+  TiArrowBackOutline: TiArrowBackOutline,
+  IconAlertTriangle: IconAlertTriangleFilled,
+  IconAdjustmentsPlus: IconAdjustmentsPlus,
 };
